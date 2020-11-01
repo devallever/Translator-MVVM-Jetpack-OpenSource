@@ -20,10 +20,17 @@ import kotlinx.coroutines.*
 import org.xm.app.translator.opensource.R
 import org.xm.app.translator.opensource.app.Global
 import org.xm.app.translator.opensource.function.TranslationHelper
+import org.xm.app.translator.opensource.function.language.Lang
 import org.xm.app.translator.opensource.mvvm.model.TranslationResponse
+import org.xm.app.translator.opensource.mvvm.repository.Repository
+import org.xm.app.translator.opensource.mvvm.repository.network.NetworkManager
+import org.xm.app.translator.opensource.mvvm.repository.network.ServiceCreator
+import org.xm.app.translator.opensource.mvvm.repository.network.TranslateApiService
 import org.xm.app.translator.opensource.mvvm.viewmodel.TranslateViewModel
 
 class TranslateFragment : BaseFragment() {
+
+    private val mMainCoroutine = CoroutineScope(Dispatchers.Main)
 
     private val mViewModel by lazy {
         ViewModelProvider(this).get(TranslateViewModel::class.java)
@@ -40,17 +47,41 @@ class TranslateFragment : BaseFragment() {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
 
+        val translateApiService = ServiceCreator.create(TranslateApiService::class.java)
+        mMainCoroutine.launch {
+            //直接使用Retrofit请求
+//            val translateResult = translateApiService.translate("你好", sl = Lang.CHINESE.CODE, tl = Lang.ENGLISH.CODE)
+//            if (translateResult.isSuccessful) {
+//                refreshUI(translateResult.body())
+//            }
+
+
+            //使用 NetworkManager
+//            val translateResult = NetworkManager.translate("你好", sl = Lang.CHINESE.CODE, tl = Lang.ENGLISH.CODE)
+//            if (translateResult.isSuccessful) {
+//                refreshUI(translateResult.body())
+//            }
+
+
+            //使用ViewModel + LiveData
+        }
+
+
+
         mViewModel.translateLiveData.observe(viewLifecycleOwner, Observer { result ->
             val translateResponse = result.getOrNull()
             refreshUI(translateResponse)
         })
+
+        mViewModel.translate("你好", sl = Lang.CHINESE.CODE, tl = Lang.ENGLISH.CODE)
+
+        return
 
         etInputContent.setOnEditorActionListener(TextView.OnEditorActionListener { v, actionId, event ->
             if (actionId == EditorInfo.IME_ACTION_SEARCH) {
 
                 val editable = etInputContent.text
                 if (editable != null) {
-                    val content = editable.toString()
                     hideKeyboard()
                     translate()
                     return@OnEditorActionListener true
