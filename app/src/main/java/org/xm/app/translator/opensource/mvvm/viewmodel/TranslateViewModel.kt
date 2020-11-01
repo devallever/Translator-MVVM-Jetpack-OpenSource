@@ -9,6 +9,7 @@ import org.xm.app.translator.opensource.mvvm.repository.Repository
 
 class TranslateViewModel : ViewModel() {
 
+    private val translateParams = TranslateParams()
     private val translateParamsLiveData = MutableLiveData<TranslateParams>()
 
     val translateLiveData = Transformations.switchMap(translateParamsLiveData) {
@@ -22,10 +23,14 @@ class TranslateViewModel : ViewModel() {
         if (q?.isEmpty() == true) {
             return
         }
-        val same = translateParamsLiveData.value?.equals(q!!, sl, tl)
+        val same = translateParamsLiveData.value?.equals(q ?: "", sl, tl)
         if (same == true) {
             return
         }
-        translateParamsLiveData.value = TranslateParams(q!!, sl, tl)
+        translateParams.q = q ?: ""
+        translateParams.sl = sl
+        translateParams.tl = tl
+        translateParamsLiveData.value = translateParams
+//        translateParamsLiveData.value = TranslateParams(q!!, sl, tl)
     }
 }
