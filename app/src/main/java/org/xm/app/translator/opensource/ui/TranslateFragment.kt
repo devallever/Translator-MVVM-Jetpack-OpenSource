@@ -30,7 +30,8 @@ import org.xm.app.translator.opensource.mvvm.viewmodel.TranslateViewModel
 
 class TranslateFragment : BaseFragment() {
 
-    private val mMainCoroutine = CoroutineScope(Dispatchers.Main)
+    private val mMainJob = Job()
+    private val mMainCoroutine = CoroutineScope(Dispatchers.Main + mMainJob)
 
     private val mViewModel by lazy {
         ViewModelProvider(this).get(TranslateViewModel::class.java)
@@ -47,10 +48,12 @@ class TranslateFragment : BaseFragment() {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
 
-        val translateApiService = ServiceCreator.create(TranslateApiService::class.java)
+
         mMainCoroutine.launch {
+            val translateApiService = ServiceCreator.create(TranslateApiService::class.java)
             //直接使用Retrofit请求
 //            val translateResult = translateApiService.translate("你好", sl = Lang.CHINESE.CODE, tl = Lang.ENGLISH.CODE)
+//            delay(10000)
 //            if (translateResult.isSuccessful) {
 //                refreshUI(translateResult.body())
 //            }
@@ -68,14 +71,12 @@ class TranslateFragment : BaseFragment() {
 
 
 
-        mViewModel.translateLiveData.observe(viewLifecycleOwner, Observer { result ->
-            val translateResponse = result.getOrNull()
-            refreshUI(translateResponse)
-        })
-
-        mViewModel.translate("你好", sl = Lang.CHINESE.CODE, tl = Lang.ENGLISH.CODE)
-
-        return
+//        mViewModel.translateLiveData.observe(viewLifecycleOwner, Observer { result ->
+//            val translateResponse = result.getOrNull()
+//            refreshUI(translateResponse)
+//        })
+//
+//        mViewModel.translate("你好", sl = Lang.CHINESE.CODE, tl = Lang.ENGLISH.CODE)
 
         etInputContent.setOnEditorActionListener(TextView.OnEditorActionListener { v, actionId, event ->
             if (actionId == EditorInfo.IME_ACTION_SEARCH) {
@@ -107,6 +108,11 @@ class TranslateFragment : BaseFragment() {
 
         })
 
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        mMainJob.cancel()
     }
 
     private fun translate() {
